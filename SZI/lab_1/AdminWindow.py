@@ -38,6 +38,15 @@ class AdminWindow(tk.Tk):
         self.delete_user_button.pack()
         self.unblock_user_button.pack()
 
+    def is_valid_password(self, password):
+        if len(password) < 3:
+            return False
+        if not any(c.islower() for c in password) or not any(c.isupper() for c in password):
+            return False
+        if not any(c.isdigit() or c in "!@#$%^&*()_+" for c in password):
+            return False
+        return True
+
     def block_user(self):
         username = tk.simpledialog.askstring("Заблокировать пользователя", "Введите имя пользователя:")
         if not username:
@@ -59,12 +68,15 @@ class AdminWindow(tk.Tk):
         if not new_password:
             return
 
-        conn = sqlite3.connect('mydatabase.db')
-        cursor = conn.cursor()
-        cursor.execute('UPDATE users SET password = ? WHERE username = ?', (new_password, username))
-        conn.commit()
-        conn.close()
-        messagebox.showinfo("Пароль изменен", f"Пароль пользователя {username} изменен.")
+        if self.is_valid_password(new_password):
+            conn = sqlite3.connect('mydatabase.db')
+            cursor = conn.cursor()
+            cursor.execute('UPDATE users SET password = ? WHERE username = ?', (new_password, username))
+            conn.commit()
+            conn.close()
+            messagebox.showinfo("Пароль изменен", f"Пароль пользователя {username} изменен.")
+        else:
+            messagebox.showinfo("Пароль не может быть изменён", "отказ в изменении пароля")
 
     def change_username(self):
         old_username = tk.simpledialog.askstring("Изменить логин пользователя", "Введите текущий логин пользователя:")
